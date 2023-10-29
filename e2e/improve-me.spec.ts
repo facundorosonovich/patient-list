@@ -1,75 +1,84 @@
 import { test, expect } from "@playwright/test";
+import {HomePage} from "../src/pageobjects/pages/home-page";
 
-/**
- * This test runs but can be improved
- *
- * Find ways to improve this test
- */
 
 test.describe("Patients", () => {
-  test("should have patient Laurence Fournier", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
-    const line = page.locator("tr", { hasText: "Laurence Fournier" });
-    const cells = line.locator("td");
-    await expect(cells.nth(0)).toHaveText("Laurence Fournier");
-    await expect(cells.nth(1)).toHaveText("Post TAVI");
-    await expect(cells.nth(2)).toHaveText("21");
-    await expect(cells.nth(3)).toHaveText("3/12/2023");
-  });
+  const patients = [
+    {
+      name: 'Laurence Fournier',
+      indication: 'Post TAVI',
+      age: '21',
+      creationDate: '3/12/2023'
+    },
+    {
+      name: 'Françoise Fournier',
+      indication: 'Post PVC Ablation',
+      age: '31',
+      creationDate: '3/18/2023'
+    },
+    {
+      name: 'Clotilde Sanchez',
+      indication: 'Palpitations',
+      age: '38',
+      creationDate: '1/25/2023'
+    }
+  ];
 
-  test("should have patient Françoise Fournier", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
-    const line = page.locator("tr", { hasText: "Françoise Fournier" });
-    const cells = line.locator("td");
-    await expect(cells.nth(0)).toHaveText("Françoise Fournier");
-    await expect(cells.nth(1)).toHaveText("Post PVC Ablation");
-    await expect(cells.nth(2)).toHaveText("31");
-    await expect(cells.nth(3)).toHaveText("3/18/2023");
-  });
+  patients.forEach((people) => {
+    test(`List should have patient ${people.name}`, async ({ page }) => {
 
-  test("should have patient Clotilde Sanchez", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
-    const line = page.locator("tr", { hasText: "Clotilde Sanchez" });
-    const cells = line.locator("td");
-    await expect(cells.nth(0)).toHaveText("Clotilde Sanchez");
-    await expect(cells.nth(1)).toHaveText("Palpitations");
-    await expect(cells.nth(2)).toHaveText("38");
-    await expect(cells.nth(3)).toHaveText("1/25/2023");
+      const expectedName = people.name.toString();
+      const expectedIndication = people.indication.toString();
+      const expectedAge = people.age.toString();
+      const expectedCreationDate = people.creationDate.toString();
+
+      const homePage = new HomePage(page);
+      await homePage.goto();
+
+      const patient = await homePage.getPatientByName(expectedName)
+
+      await expect(patient.name).toHaveText(expectedName);
+      await expect(patient.indication).toHaveText(expectedIndication);
+      await expect(patient.age).toHaveText(expectedAge);
+      await expect(patient.creationDate).toHaveText(expectedCreationDate);
+    });
   });
 });
 
 test.describe("Filters", () => {
-  test("should filter by patient name", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
-    await page.waitForTimeout(2000);
-    await page.mouse.click(120, 175);
-    await page.keyboard.type("rou");
+  test("Should filter by patient name", async ({ page }) => {
 
-    const lines = page.locator("tr");
-    await expect(lines).toHaveCount(4);
-    await expect(lines.nth(1)).toContainText("Célestin Roussel");
-    await expect(lines.nth(2)).toContainText("Ascension Roussel");
-    await expect(lines.nth(3)).toContainText("Christiane Rousseau");
+    const expectedSubstring = 'rou'
+    const expectedPatientsCount = 3;
+    const homePage = new HomePage(page);
+    await homePage.goto();
+
+    await homePage.filterByName(expectedSubstring)
+
+    const patientsCount = await homePage.patientList.getPatients()
+    await expect(patientsCount).toHaveCount(expectedPatientsCount)
+
+    for (let i = 0; i < patientsCount ; i++ ) {
+      const patient = await homePage.getPatientByIndex(i)
+      await expect(patient.name).toContainText(expectedSubstring)
+    }
   });
 
-  test("should filter by indication", async ({ page }) => {
-    await page.goto("http://localhost:5173/");
-    await page.waitForTimeout(2000);
-    await page.mouse.click(120, 175);
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("P");
-    await page.keyboard.press("P");
+  test("Should filter by indication", async ({ page }) => {
 
-    const lines = page.locator("tr");
-    await expect(lines.nth(1).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(2).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(3).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(4).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(5).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(6).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(7).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(8).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(9).locator("td").nth(1)).toHaveText("Palpitations");
-    await expect(lines.nth(10).locator("td").nth(1)).toHaveText("Palpitations");
+    const expectedIndication = 'Palpitations';
+    const expectedPatientsCount = 10;
+    const homePage = new HomePage(page);
+    await homePage.goto();
+
+    await homePage.filterByIndication(expectedIndication)
+
+    const patientsCount = await homePage.patientList.getPatients()
+    await expect(patientsCount).toHaveCount(expectedPatientsCount)
+
+    for (let i = 0; i < expectedPatientsCount ; i++ ) {
+      const patient = await homePage.getPatientByIndex(i)
+      await expect(patient.indication).toHaveText(expectedIndication)
+    }
   });
 });
