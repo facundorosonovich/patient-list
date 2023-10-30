@@ -13,7 +13,7 @@ test("Should add a patient", async ({ page }) => {
   const firstName = 'Atreides'
   const lastName = 'Leto'
   const birthDate = '1980-10-10'
-  const indication = 'Palpitations'
+  const indication = 'Post TAVI'
   const homePage = new HomePage(page);
   const invitePage = new InvitePage(page)
 

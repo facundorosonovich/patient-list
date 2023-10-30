@@ -11,6 +11,7 @@ export class HomePage {
     private readonly patientIndicationDropdown: Locator
     private readonly patientAgeSlider: Locator
     private readonly patientListContainer: Locator
+    public readonly patientDeletedNotification: Locator
 
     // Components
     public readonly patientList: PatientList
@@ -22,6 +23,7 @@ export class HomePage {
         this.patientIndicationDropdown = this.page.getByLabel('Indication')
         this.patientAgeSlider = this.page.locator('[id=slider-root-:r9]')
         this.patientListContainer = this.page.locator('div table')
+        this.patientDeletedNotification = this.page.getByText('Patient deleted successfully')
 
         this.patientList = new PatientList(this.patientListContainer)
     }
